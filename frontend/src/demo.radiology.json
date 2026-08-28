@@ -1,0 +1,99 @@
+{
+  "product": { "mark": "✦", "title": "COWORKER", "tag": "Radiology", "status": "Connected" },
+  "doctor": { "name": "Dr. Michael Ross", "role": "Radiologist", "avatar": "MR" },
+  "nav": ["Dashboard", "Patients", "Schedule", "Messages", "Reports", "Knowledge"],
+  "voice": "Charon",
+  "systemInstruction": "You are an enterprise radiology copilot speaking live with Dr. Michael Ross. Speak naturally and concisely — you are talking out loud, so keep answers to a few spoken sentences. Ground every answer ONLY in the reference data below; never invent facts or add anything not stated here. Just answer in speech — never describe or narrate any on-screen action, and never mention tools, functions, or panels; the screen updates automatically from what you say.\n\nRESPOND ONLY WHEN ADDRESSED: Answer ONLY when Dr. Ross is clearly speaking to you and asking a question or giving a command. If speech is not directed at you — side conversation, thinking aloud, background chatter, or an incomplete utterance — stay completely SILENT and produce no audio. React only; never greet or volunteer unprompted.\n\nREPORTING QUEUE TODAY: 42 studies pending. 5 critical priority, 11 high priority, 18 medium priority, 8 routine priority. The highest priority case is a suspected pulmonary embolism, followed by an acute stroke CT. AI priority queue: John Miller — CT Pulmonary Angio — Critical; Susan Lee — Brain CT — Critical; David Wong — MRI Brain — High; Emma Davis — HRCT Chest — High; Peter Hall — PET CT — High.\n\nPATIENT — John Miller: 62-year-old male, referred by the Emergency Department with sudden onset chest pain and shortness of breath, suspected pulmonary embolism. Previous CT pulmonary angiography (CTPA) performed eight months ago; a chest X-ray was performed three months ago. Current CTPA is ready for review alongside the previous study.\n\nCOMPARISON FINDINGS: the right lower lobe embolus has increased in size by approximately twenty-two percent, from eleven millimeters to thirteen point five millimeters. New filling defects are present within the segmental pulmonary arteries — two previously, five now. No pleural effusion. Cardiac size is unchanged.\n\nSTRUCTURED REPORT: imaging demonstrates progression of pulmonary embolic disease compared with the prior examination. New segmental filling defects are identified within the right lower lobe. No evidence of right heart strain. Impression: findings are highly suggestive of progressive pulmonary embolism. Recommendation: immediate anticoagulation evaluation.\n\nFOLLOW-UP ACTIONS (if asked to notify the emergency physician and recommend anticoagulation evaluation): confirm each is done — a critical finding alert has been sent to the emergency physician; the radiology report has been marked urgent; the patient's electronic medical record has been updated; a recommendation for immediate anticoagulation evaluation has been included in the report.",
+  "welcome": {
+    "greeting": "Welcome Dr. Michael Ross",
+    "sub": "COWORKER - Radiology",
+    "hint": "How can I help you today?",
+    "suggestions": [],
+    "workspace": {
+      "title": "Your Workspace",
+      "sub": "Ask a question and the relevant panel lights up",
+      "sources": []
+    }
+  },
+  "banner": {
+    "section": "patient", "avatar": "JM", "name": "John Miller",
+    "facts": [
+      { "label": "Age", "value": "62" },
+      { "label": "Sex", "value": "Male" },
+      { "label": "Diagnosis", "value": "Suspected Pulmonary Embolism" },
+      { "label": "Referred By", "value": "ER" }
+    ]
+  },
+  "dashboard": [
+    { "id": "summary", "section": "queue", "title": "Reporting Summary", "blocks": [{
+      "type": "stats", "items": [
+        { "label": "Pending Studies", "value": "42" },
+        { "label": "Critical", "value": "5" },
+        { "label": "High", "value": "11" },
+        { "label": "Medium", "value": "18" },
+        { "label": "Routine", "value": "8" }
+      ]
+    }]},
+    { "id": "priority-queue", "section": "queue", "title": "AI Priority Queue", "blocks": [{
+      "type": "table", "columns": ["Patient", "Study", "Priority"], "highlight": "Critical",
+      "rows": [
+        ["John Miller", "CT Pulmonary Angio", "Critical"],
+        ["Susan Lee", "Brain CT", "Critical"],
+        ["David Wong", "MRI Brain", "High"],
+        ["Emma Davis", "HRCT Chest", "High"],
+        ["Peter Hall", "PET CT", "High"]
+      ]
+    }]},
+    { "id": "imaging-timeline", "section": "patient", "title": "Previous Imaging Timeline", "blocks": [{
+      "type": "timeline", "nodes": [
+        { "label": "8mo ago", "caption": "CTPA" },
+        { "label": "3mo ago", "caption": "Chest X-Ray" },
+        { "label": "Today", "caption": "Current CTPA", "active": true }
+      ]
+    }]},
+    { "id": "dicom-viewer", "section": "patient", "title": "DICOM Viewer", "blocks": [{
+      "type": "compare", "left": { "label": "Previous CT" }, "right": { "label": "Current CT" }
+    }]},
+    { "id": "comparison-panel", "section": "comparison", "title": "Comparison Panel", "match": ["compare", "comparing", "compared"], "blocks": [{
+      "type": "compare", "left": { "label": "Previous CT" }, "right": { "label": "Current CT", "tag": "AI Overlay" }
+    }]},
+    { "id": "measurement-table", "section": "comparison", "title": "Measurement Table", "blocks": [{
+      "type": "trends", "columns": ["Finding", "Previous", "Current", "Trend"], "rows": [
+        { "test": "Embolus Size", "prev": "11 mm", "curr": "13.5 mm", "trend": "up" },
+        { "test": "Filling Defects", "prev": "2", "curr": "5", "trend": "up" },
+        { "test": "Pleural Effusion", "prev": "No", "curr": "No", "trend": "flat" }
+      ]
+    }]},
+    { "id": "trend-graph", "section": "comparison", "title": "Pulmonary Embolus Size", "blocks": [{
+      "type": "chart", "unit": "mm", "points": [
+        { "label": "8 months ago", "value": 11 },
+        { "label": "Today", "value": 13.5 }
+      ]
+    }]},
+    { "id": "structured-report", "section": "report", "title": "Structured Report", "match": ["summarize", "generate", "impression"], "blocks": [{
+      "type": "report", "sections": [
+        { "heading": "Clinical History", "body": "62-year-old male referred with sudden onset chest pain and shortness of breath. Previous CT pulmonary angiography was performed eight months ago." },
+        { "heading": "Technique", "body": "CT pulmonary angiography with intravenous contrast; current study compared with the prior CTPA from eight months ago." },
+        { "heading": "Findings", "body": "Imaging demonstrates progression of pulmonary embolic disease compared with the prior examination. New segmental filling defects are identified within the right lower lobe. No evidence of right heart strain is observed." },
+        { "heading": "Impression", "body": "Findings are highly suggestive of progressive pulmonary embolism." },
+        { "heading": "Recommendation", "body": "Immediate anticoagulation evaluation is recommended given the progression of pulmonary embolic disease." }
+      ]
+    }]},
+    { "id": "workflow-status", "section": "workflow", "title": "Workflow Status", "blocks": [{
+      "type": "flow", "items": [
+        { "dept": "Critical Alert", "status": "Sent" },
+        { "dept": "EMR", "status": "Updated" },
+        { "dept": "Emergency Physician", "status": "Notified" },
+        { "dept": "Report", "status": "Signed" },
+        { "dept": "Communication", "status": "Logged" }
+      ]
+    }]}
+  ],
+  "thinking": {
+    "queue": ["Connecting to RIS...", "Loading today's worklist...", "Checking emergency cases...", "Prioritizing studies..."],
+    "patient": ["Opening PACS...", "Loading DICOM images...", "Retrieving previous studies...", "Loading clinical history..."],
+    "comparison": ["Comparing studies...", "Matching anatomical landmarks...", "Measuring abnormalities...", "Generating comparison..."],
+    "report": ["Generating structured report...", "Reviewing findings...", "Formatting impression...", "Preparing recommendation..."],
+    "workflow": ["Sending critical alert...", "Updating EMR...", "Notifying Emergency Department...", "Logging communication..."]
+  }
+}

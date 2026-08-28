@@ -1,0 +1,90 @@
+{
+  "product": { "mark": "✦", "title": "AI Copilot", "tag": "Enterprise", "status": "Connected" },
+  "doctor": { "name": "Dr. Sarah Wilson", "role": "Oncologist", "avatar": "SW" },
+  "nav": ["Dashboard", "Patients", "Schedule", "Messages", "Reports", "Knowledge"],
+  "voice": "Charon",
+  "systemInstruction": "You are an enterprise oncology copilot speaking live with Dr. Sarah Wilson. Speak naturally, warmly and concisely — you are talking out loud, so keep answers to a few spoken sentences. Ground every answer ONLY in the reference data below; never invent facts or add anything not stated here. Just answer in speech — never describe or narrate any on-screen action, and never mention tools, functions, or panels; the screen updates automatically from what you say.\n\nRESPOND ONLY WHEN ADDRESSED: Answer ONLY when Dr. Wilson is clearly speaking to you and asking a question or giving a command. If speech is not directed at you — side conversation, thinking aloud, background chatter, or an incomplete utterance — stay completely SILENT and produce no audio. React only; never greet or volunteer unprompted.\n\nAPPOINTMENTS TODAY (8): first is Emily Johnson at 9:00 AM for a chemotherapy response review. The rest: three follow-up consultations, two new oncology referrals, one multidisciplinary tumor board review, and one post-operative assessment.\n\nPATIENT — Emily Johnson: fifty-four-year-old, Stage III breast cancer, diagnosed six months ago, primary oncologist Dr. Sarah Wilson, ECOG 1. Completed four chemotherapy cycles. Overall response positive: eighteen percent reduction in primary tumor size over six months, largest reduction after the second cycle, reduction now plateauing. Recent blood work stable, treatment compliance excellent (98%, zero missed medications). Two satellite lesions show mild progression compared to the previous MRI.\n\nRECOMMENDATIONS: continue the existing chemotherapy protocol while investigating the satellite lesion progression; order molecular profiling to evaluate targeted-therapy eligibility; a PET-CT scan within the next two weeks; discuss the case at the multidisciplinary tumor board. Clinical confidence 94%.\n\nFOLLOW-UP ACTIONS (if asked to schedule the PET scan, notify the pharmacy, order the lab tests, and send dietary guidance): confirm each is done — PET-CT scheduled for next Tuesday; laboratory orders for CBC, Liver Function Test and Tumor Markers submitted; oncology pharmacy notified to prepare the next chemotherapy cycle; personalized dietary guidance sent to the patient's mobile app and email; all actions documented in the medical record.",
+  "welcome": {
+    "greeting": "Welcome",
+    "sub": "Your AI Copilot is ready",
+    "hint": "How can I help you today?",
+    "suggestions": [],
+    "workspace": {
+      "title": "Your Workspace",
+      "sub": "Ask a question and the relevant panel lights up",
+      "sources": []
+    }
+  },
+  "banner": {
+    "section": "patient", "avatar": "EJ", "name": "Emily Johnson",
+    "facts": [
+      { "label": "Age", "value": "54" },
+      { "label": "Diagnosis", "value": "Stage III Breast Cancer" },
+      { "label": "Treatment", "value": "Chemotherapy Cycle 4" },
+      { "label": "Primary Oncologist", "value": "Dr. Sarah Wilson" },
+      { "label": "Performance Score", "value": "ECOG 1" }
+    ]
+  },
+  "dashboard": [
+    { "id": "appointments", "section": "appointments", "title": "Doctor Schedule", "blocks": [{
+      "type": "table", "columns": ["Time", "Patient", "Purpose", "Status"], "highlight": "Next",
+      "rows": [
+        ["09:00", "Emily Johnson", "Chemo Response Review", "Next"],
+        ["09:45", "Robert King", "Follow-up", "Scheduled"],
+        ["10:30", "Lisa Chen", "New Consultation", "Scheduled"],
+        ["11:15", "David Cooper", "Tumor Board", "Scheduled"],
+        ["12:00", "Mary Thomas", "Follow-up", "Scheduled"],
+        ["02:00", "James Hall", "Post Surgery", "Scheduled"],
+        ["03:15", "Sophia Lee", "Chemo Review", "Scheduled"],
+        ["04:00", "Daniel Moore", "Follow-up", "Scheduled"]
+      ]
+    }]},
+    { "id": "timeline", "section": "patient", "title": "Timeline", "blocks": [{
+      "type": "timeline", "nodes": [
+        { "label": "Jan", "caption": "Diagnosis" }, { "label": "Feb", "caption": "Chemo Cycle 1" },
+        { "label": "Mar", "caption": "Cycle 2" }, { "label": "Apr", "caption": "Cycle 3" },
+        { "label": "May", "caption": "Cycle 4" }, { "label": "Today", "caption": "Review", "active": true }
+      ]
+    }]},
+    { "id": "summary", "section": "patient", "title": "Treatment Summary", "blocks": [{
+      "type": "stats", "items": [
+        { "label": "Primary Tumor", "value": "▼ 18%", "trend": "down" },
+        { "label": "Satellite Lesions", "value": "▲ Mild Progression", "trend": "up" },
+        { "label": "Compliance", "value": "98%", "trend": "flat" },
+        { "label": "Missed Medication", "value": "0", "trend": "flat" }
+      ]
+    }]},
+    { "id": "tumor", "section": "tumor", "title": "Tumor Trend Graph", "blocks": [{
+      "type": "chart", "unit": "cm", "points": [
+        { "label": "Jan", "value": 4.8 }, { "label": "Feb", "value": 4.6 }, { "label": "Mar", "value": 4.3 },
+        { "label": "Apr", "value": 4.0 }, { "label": "May", "value": 3.9 }, { "label": "Jun", "value": 3.7 }
+      ]
+    }]},
+    { "id": "mri", "section": "tumor", "title": "MRI Comparison", "blocks": [{
+      "type": "compare", "left": { "label": "Previous MRI" }, "right": { "label": "Current MRI", "tag": "AI Highlight" },
+      "caption": "Tumor Boundary · Lesion Overlay"
+    }]},
+    { "id": "recommendations", "section": "recommendations", "title": "AI Recommendations", "blocks": [{
+      "type": "checklist",
+      "items": ["Continue Chemotherapy", "PET-CT Scan", "Molecular Profiling", "Tumor Board Review", "Evaluate Targeted Therapy"],
+      "gauge": { "percent": 94, "label": "Clinical Confidence", "note": "" }
+    }]},
+    { "id": "workflow", "section": "workflow", "title": "Workflow Status", "blocks": [{
+      "type": "flow", "items": [
+        { "dept": "Radiology", "status": "PET Scheduled" },
+        { "dept": "Laboratory", "status": "Orders Sent" },
+        { "dept": "Pharmacy", "status": "Medication Queue Updated" },
+        { "dept": "Dietitian", "status": "Consultation Requested" },
+        { "dept": "Patient App", "status": "Instructions Delivered" },
+        { "dept": "Medical Record", "status": "Updated" }
+      ]
+    }]}
+  ],
+  "thinking": {
+    "appointments": ["Connecting to the Hospital Information System...", "Retrieving physician schedule...", "Loading patient appointments..."],
+    "patient": ["Opening Electronic Medical Record...", "Retrieving treatment history...", "Reviewing physician notes...", "Loading pathology reports...", "Analyzing imaging history..."],
+    "tumor": ["Opening MRI archive...", "Comparing measurements...", "Generating progression graph..."],
+    "recommendations": ["Reviewing treatment guidelines...", "Comparing similar patient outcomes...", "Evaluating response trend...", "Generating clinical recommendations..."],
+    "workflow": ["Creating imaging order...", "Generating laboratory requests...", "Updating pharmacy...", "Preparing patient instructions...", "Sending notifications..."]
+  }
+}
