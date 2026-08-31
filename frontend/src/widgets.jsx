@@ -2,14 +2,14 @@
 // domain and this code is unchanged. To add a block type, write a component and
 // register it in BLOCKS at the bottom.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import logo from './assets/Spritle.png'
 
 /* ---------------- App shell ---------------- */
 
-export function TopNav({ product, doctor, nav }) {
+export function TopNav({ product, doctor, nav, railOpen, onToggleRail }) {
   return (
-    <header className="nav">
+    <header className="nav app-topbar">
       <div className="nav__brand">
         <img className="nav__logo" src={logo} alt="Spritle" />
         <div className="nav__product">
@@ -21,6 +21,11 @@ export function TopNav({ product, doctor, nav }) {
         {nav.map((t, i) => <button key={i} className={i === 0 ? 'on' : ''}>{t}</button>)}
       </nav>
       <div className="nav__user">
+        {onToggleRail && (
+          <button className="nav__rail-toggle" onClick={onToggleRail} aria-label="Toggle sidebar">
+            {railOpen ? '◀' : '▶'}
+          </button>
+        )}
         <span className="nav__avatar">{doctor.avatar}</span>
         <div><b>{doctor.name}</b><small>{doctor.role}</small></div>
       </div>
@@ -59,9 +64,6 @@ export function WorkspaceEmpty({ workspace }) {
   )
 }
 
-// Sequential diagnostic log shown while the agent "works" on an answer —
-// lines arrive one at a time (App.jsx paces them from demo.json's thinking[section]),
-// then a Done checkmark right before the real panel replaces this view.
 export function ThinkingLog({ lines, done }) {
   return (
     <div className="tlog">
@@ -74,9 +76,139 @@ export function ThinkingLog({ lines, done }) {
   )
 }
 
+/* ---------------- Inspector (Phase 3) ---------------- */
+
+export function Inspector({ selected }) {
+  if (!selected) return (
+    <aside className="app-inspector">
+      <div className="insp-empty">
+        <span className="eyebrow">Select an object</span>
+        <p>Click a row or card to view details</p>
+      </div>
+    </aside>
+  )
+
+  return (
+    <aside className="app-inspector">
+      <div className="insp-head">
+        <span className="eyebrow">{selected.section || 'Object'}</span>
+        <h2>{selected.title}</h2>
+      </div>
+
+      {selected.fields && (
+        <div className="insp-fields">
+          {selected.fields.map((f, i) => (
+            <div key={i} className="field">
+              <span className="f-key">{f.label}</span>
+              <span className={`f-val ${f.mono ? 'mono' : ''}`}>{f.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selected.miniChart && (
+        <div className="insp-section">
+          <span className="insp-label">Trend · 30d</span>
+          <div className="insp-chart">
+            <svg viewBox="0 0 280 80">
+              <line x1="0" y1="70" x2="280" y2="70" stroke="currentColor" strokeWidth="1" opacity=".2" />
+              <polyline points={selected.miniChart} fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" opacity=".5" />
+              <circle cx="280" cy={selected.miniChartY || 22} r="2.5" fill="currentColor" />
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {selected.activity && (
+        <div className="insp-section">
+          <span className="insp-label">Activity</span>
+          <ul className="feed">
+            {selected.activity.map((a, i) => (
+              <li key={i}>
+                <span className="feed-time">{a.time}</span>
+                <span className="feed-body"><b>{a.label}</b> {a.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  )
+}
+
+/* ---------------- Command Palette (Phase 3) ---------------- */
+
+export function CommandPalette({ open, onClose, onNavigate, sections }) {
+  const [query, setQuery] = useState('')
+  const [activeIdx, setActiveIdx] = useState(0)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    if (open) { inputRef.current?.focus(); setQuery(''); setActiveIdx(0) }
+  }, [open])
+
+  const actions = [
+    { id: '__new_appt', label: 'New appointment', glyph: '+' },
+    { id: '__run_wf', label: 'Run workflow', glyph: '⎇' },
+  ]
+
+  const filtered = sections.filter(s =>
+    s.label.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const allItems = [...actions, ...filtered]
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx(i => Math.min(i + 1, allItems.length - 1)) }
+    if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(i => Math.max(i - 1, 0)) }
+    if (e.key === 'Enter' && allItems[activeIdx]) {
+      const item = allItems[activeIdx]
+      if (item.id && !item.id.startsWith('__')) { onNavigate(item.id); onClose() }
+      else { onClose() }
+    }
+    if (e.key === 'Escape') onClose()
+  }
+
+  if (!open) return null
+  return (
+    <div className="cmdk-scrim" onClick={onClose}>
+      <div className="cmdk" role="dialog" aria-modal="true" aria-label="Command palette" onClick={e => e.stopPropagation()}>
+        <div className="cmdk-input-row">
+          <span className="kbd">⌘K</span>
+          <input ref={inputRef} className="cmdk-input"
+            placeholder="Search objects, actions, people…"
+            value={query} onChange={e => { setQuery(e.target.value); setActiveIdx(0) }}
+            onKeyDown={handleKeyDown} />
+        </div>
+        <div className="cmdk-group">
+          <div className="cmdk-group-label">Actions</div>
+          {actions.map((a, i) => (
+            <div key={a.id} className={`cmdk-item ${i === activeIdx ? 'is-active' : ''}`}
+              onMouseEnter={() => setActiveIdx(i)} onClick={onClose}>
+              <span className="glyph">{a.glyph}</span> {a.label}
+            </div>
+          ))}
+        </div>
+        <div className="cmdk-group">
+          <div className="cmdk-group-label">Sections</div>
+          {filtered.map((s, i) => {
+            const idx = actions.length + i
+            return (
+              <div key={s.id} className={`cmdk-item ${idx === activeIdx ? 'is-active' : ''}`}
+                onMouseEnter={() => setActiveIdx(idx)}
+                onClick={() => { onNavigate(s.id); onClose() }}>
+                <span className="glyph">○</span> {s.label}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ---------------- Dashboard + cards ---------------- */
 
-// Auto-expand multi-item blocks into individual cards at render time.
 const SPLIT = {
   table:     { prop: 'rows',     title: (row) => row[1] || row[0] },
   stats:     { prop: 'items',    title: (item) => item.label },
@@ -119,7 +251,6 @@ function expandCards(cards) {
   })
 }
 
-// Responsive column count based on viewport width
 function useColumnCount() {
   const [cols, setCols] = useState(3)
   useEffect(() => {
@@ -134,19 +265,30 @@ function useColumnCount() {
   return cols
 }
 
-// Renders only the cards for the ONE section the question matched.
-// CSS columns provide vertical ordering (top-to-bottom per column) and
-// dynamic card heights that size to content.
-export function Dashboard({ banner, cards }) {
+export function Dashboard({ banner, cards, onRowClick, selectedIdx }) {
   const expanded = expandCards(cards)
   const cols = useColumnCount()
+
+  // Separate table blocks (render as DataTable) from other blocks (render as cards)
+  const tableCards = expanded.filter(c => c.blocks?.[0]?.type === 'table')
+  const otherCards = expanded.filter(c => c.blocks?.[0]?.type !== 'table')
+
   return (
-    <div className="dash dash--big">
+    <div className="dash">
       {banner && <Banner {...banner} />}
+      {tableCards.map((c, i) => {
+        const block = c.blocks[0]
+        return (
+          <DataTable key={`${c.id}-${i}`} columns={block.columns} rows={block.rows}
+            highlight={block.highlight} title={c.title} section={c.section}
+            onRowClick={onRowClick} selectedIdx={selectedIdx} />
+        )
+      })}
       <div className="dash__cols" style={{ columnCount: cols }}>
-        {expanded.map((c, ci) => (
+        {otherCards.map((c, ci) => (
           <div key={ci} className="dash__col-item">
-            <Card eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
+            <Card eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}
+              onClick={() => onRowClick?.({ title: c.title, section: c.section, id: c.id })}>
               {(c.blocks || []).map((b, i) => {
                 const C = BLOCKS[b && b.type] || null
                 return C ? <C key={i} {...b} /> : null
@@ -159,9 +301,91 @@ export function Dashboard({ banner, cards }) {
   )
 }
 
-function Card({ eyebrow, title, badge, link, children }) {
+/* ---------------- DataTable (Phase 2) ---------------- */
+
+function DataTable({ columns, rows, highlight, title, section, onRowClick, selectedIdx }) {
+  const [sortCol, setSortCol] = useState(null)
+  const [sortDir, setSortDir] = useState('asc')
+
+  const sorted = sortCol !== null
+    ? [...rows].sort((a, b) => {
+        const cmp = String(a[sortCol]).localeCompare(String(b[sortCol]))
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+    : rows
+
+  const toggleSort = (col) => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortCol(col); setSortDir('asc') }
+  }
+
   return (
-    <section className="card">
+    <div className="dtable-section">
+      <div className="app-head">
+        <div className="head-row">
+          <div className="head-title">
+            <span className="eyebrow">{section}</span>
+            <h1>{title}</h1>
+          </div>
+          <div className="toolbar">
+            <input className="app-field" placeholder={`Filter ${rows.length} rows…`} />
+          </div>
+        </div>
+      </div>
+      <div className="dtable-wrap">
+        <table className="dtable" role="grid" aria-label={title}>
+          <thead>
+            <tr role="row">
+              {columns.map((c, i) => (
+                <th key={i} role="columnheader"
+                  className={`sortable ${sortCol === i ? 'is-sorted' : ''}`}
+                  aria-sort={sortCol === i ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  tabIndex={0}
+                  onClick={() => toggleSort(i)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSort(i) } }}>
+                  {c} <span className="caret">{sortCol === i ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((r, i) => {
+              const on = highlight && r[r.length - 1] === highlight
+              return (
+                <tr key={i} role="row" tabIndex={0}
+                  className={`dtable-row ${on ? 'row-hi' : ''} ${selectedIdx === i ? 'is-selected' : ''}`}
+                  onClick={() => onRowClick?.({
+                    title: r[1], section, fields: columns.map((c, j) => ({ label: c, value: r[j], mono: j === 0 })),
+                    activity: [{ time: r[0], label: r[1], text: r[2] }],
+                    miniChart: '0,60 56,52 112,56 168,36 224,28 280,20', miniChartY: 20
+                  })}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.click() }}
+                  style={{ animationDelay: `${i * 30}ms` }}>
+                  {r.map((cell, j) => {
+                    const last = j === r.length - 1
+                    if (last) {
+                      const statusClass = on ? 'is-success' : 'is-neutral'
+                      return <td key={j}><span className={`status-dot ${statusClass}`} />{cell}</td>
+                    }
+                    if (j === 0) return <td key={j} className="mono">{cell}</td>
+                    return <td key={j}>{cell}</td>
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        <div className="dtable-foot">
+          <span>{rows.length} rows</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Card({ eyebrow, title, badge, link, children, onClick }) {
+  return (
+    <section className="card" onClick={onClick} style={onClick ? { cursor: 'pointer' } : undefined}>
       {(eyebrow || title || badge) && (
         <header className="card__head">
           <div>
@@ -387,8 +611,6 @@ function Text({ title, body }) {
   return <>{title && <h4 className="sub">{title}</h4>}<p className="block-text">{body}</p></>
 }
 
-// Structured multi-section document — clinical/legal reports, meeting minutes,
-// anything with named sections and prose bodies.
 function Report({ sections }) {
   return (
     <div className="report">

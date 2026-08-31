@@ -1,5 +1,5 @@
-import { useRef, useReducer, useState, useEffect } from 'react'
-import { TopNav, LeftWelcome, WorkspaceEmpty, Dashboard, ThinkingLog } from './widgets.jsx'
+import { useRef, useReducer, useState, useEffect, useCallback } from 'react'
+import { TopNav, LeftWelcome, WorkspaceEmpty, Dashboard, ThinkingLog, Inspector, CommandPalette } from './widgets.jsx'
 import Blob from './Blob.jsx'
 import oncologyDemo from './demo.json'
 import radiologyDemo from './demo.radiology.json'
@@ -9,10 +9,7 @@ import { createLiveSession } from './live.js'
 const DEMO_KEY = new URLSearchParams(location.search).get('demo') === 'radiology' ? 'radiology' : 'oncology'
 const demo = DEMO_KEY === 'radiology' ? radiologyDemo : oncologyDemo
 
-// Dynamic panel matching — the vocabulary is DERIVED from each panel's own content
-// in demo.json (titles weigh most, body text least; rarer words score higher). Change
-// the template tomorrow and matching adapts automatically — no keyword lists to edit.
-// Optional: add a "match": ["synonym", ...] array to any card in demo.json to boost terms.
+// Dynamic panel matching
 const STOP = new Set('the a an and or of to for me my your you i we show tell give bring let us it on in at is are was has have had do does did over last next what how when who whom this that these those with about please good morning hi hey ok okay now here there review status details view more can could would should also them then than'.split(' '))
 const words = (s) => String(s).toLowerCase().match(/[a-z]{3,}/g) || []
 const KEY_W = { match: 4, name: 3, title: 3, eyebrow: 3, badge: 3, caption: 2, tag: 2, dept: 2, test: 2 }
@@ -37,18 +34,14 @@ function buildIndex(cards) {
   return maps
 }
 const INDEX = buildIndex([...demo.dashboard, { section: demo.banner.section, blocks: [demo.banner] }])
-// Plain prefix matching misses irregular inflections (notify/notified — y becomes i;
-// compare/comparison — silent e drops before -ison). Stripping known suffixes plus
-// those two spelling rules catches them without hardcoding word families, so it
-// benefits every future script, not just this one.
 const SUFFIXES = ['ations', 'ation', 'ison', 'ing', 'ize', 'ed', 'es', 's']
 function root(w) {
   for (const suf of SUFFIXES) {
     const rem = w.length - suf.length
     if (rem >= 4 && w.endsWith(suf)) { w = w.slice(0, rem); break }
   }
-  if (w.length >= 4 && w.endsWith('i')) w = w.slice(0, -1) + 'y'   // notifi -> notify
-  if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1)           // compare -> compar
+  if (w.length >= 4 && w.endsWith('i')) w = w.slice(0, -1) + 'y'
+  if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1)
   return w
 }
 const fuzzy = (a, b) => a === b
@@ -62,22 +55,30 @@ function matchPanel(text) {
     for (const tok of toks) { let hit = 0; for (const [term, w] of map) if (fuzzy(tok, term)) hit = Math.max(hit, w); score += hit }
     if (score > bestScore) { bestScore = score; best = sec }
   }
-  return bestScore >= 2 ? best : null     // >=2 ignores lone body-word noise; a title hit is 3
+  return bestScore >= 2 ? best : null
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// Build sections list for command palette
+const SECTIONS = demo.dashboard.map(c => ({ id: c.section, label: c.title || c.section }))
+const UNIQUE_SECTIONS = [...new Map(SECTIONS.map(s => [s.id, s])).values()]
 
 export default function App() {
   const [active, setActive] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [thinking, setThinking] = useState(false)
-  const [hot, setHot] = useState(null)       // section currently on screen
-  const [hasRevealed, setHasRevealed] = useState(false)  // any section ever revealed?
-  const [working, setWorking] = useState(null)  // section whose thinking sequence is playing
+  const [hot, setHot] = useState(null)
+  const [hasRevealed, setHasRevealed] = useState(false)
+  const [working, setWorking] = useState(null)
   const [workLines, setWorkLines] = useState([])
   const [workDone, setWorkDone] = useState(false)
   const [error, setError] = useState('')
   const [history, setHistory] = useState([])
+  const [railOpen, setRailOpen] = useState(true)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [selectedIdx, setSelectedIdx] = useState(null)
+  const [cmdOpen, setCmdOpen] = useState(false)
   const live = useRef({ role: null, text: '' })
   const [, render] = useReducer((x) => x + 1, 0)
   const session = useRef(null)
@@ -85,14 +86,34 @@ export default function App() {
   const thinkTimer = useRef(null)
   const giveUpTimer = useRef(null)
   const runId = useRef(0)
-  const turnStarted = useRef(false)   // has this user turn already armed the audio hold?
-  const revealing = useRef(false)     // is a thinking sequence currently in flight?
+  const turnStarted = useRef(false)
+  const revealing = useRef(false)
 
   useEffect(() => { bottom.current?.scrollIntoView({ behavior: 'smooth' }) })
 
-  // Re-armed on every word the user speaks. If the model never answers — stays
-  // silent per its own "unclear utterance" instruction, or the turn just stalls —
-  // nothing would otherwise clear `thinking`, and the UI hangs forever. This bounds it.
+  // Phase 5: Global keyboard shortcuts
+  useEffect(() => {
+    const handler = (e) => {
+      // ⌘K / Ctrl+K → command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setCmdOpen(v => !v)
+      }
+      // Escape → close palette, deselect
+      if (e.key === 'Escape') {
+        if (cmdOpen) setCmdOpen(false)
+        else if (selectedCard) { setSelectedCard(null); setSelectedIdx(null) }
+      }
+      // ⌘+[ / Ctrl+[ → toggle rail
+      if ((e.metaKey || e.ctrlKey) && e.key === '[') {
+        e.preventDefault()
+        setRailOpen(v => !v)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [cmdOpen, selectedCard])
+
   function armThinking() {
     clearTimeout(thinkTimer.current); setThinking(false)
     thinkTimer.current = setTimeout(() => setThinking(true), 650)
@@ -107,11 +128,9 @@ export default function App() {
     turnStarted.current = false
   }
 
-  // Play the section's scripted "thinking" lines one at a time, THEN release the
-  // agent's held voice/text — so it never talks over its own "thinking" animation.
   async function revealSection(sec) {
-    if (sec === hot && !working) { session.current?.release(); return }   // same panel — just answer, no replay
-    if (sec === working) return   // already mid-animation for this section
+    if (sec === hot && !working) { session.current?.release(); return }
+    if (sec === working) return
     const id = ++runId.current
     revealing.current = true
     setWorking(sec); setWorkLines([]); setWorkDone(false)
@@ -149,9 +168,9 @@ export default function App() {
     setError('')
     const s = createLiveSession({
       onUserText: (d) => {
-        if (!turnStarted.current) { turnStarted.current = true; session.current?.hold() }   // hold the reply until we know what to show
+        if (!turnStarted.current) { turnStarted.current = true; session.current?.hold() }
         pushDelta('user', d); armThinking()
-        const m = matchPanel(live.current.text)   // from the spoken words, play the thinking sequence
+        const m = matchPanel(live.current.text)
         if (m) revealSection(m)
       },
       onAiText: (d) => { stopThinking(); pushDelta('ai', d) },
@@ -159,7 +178,7 @@ export default function App() {
       onInterrupt: () => stopThinking(),
       onTurnDone: () => {
         stopThinking(); flush(); turnStarted.current = false
-        if (!revealing.current) session.current?.release()   // nothing matched — don't hold the reply forever
+        if (!revealing.current) session.current?.release()
       },
       onError: (msg) => setError(msg),
     }, { demoKey: DEMO_KEY })
@@ -174,60 +193,74 @@ export default function App() {
   }
   const toggle = () => (active ? stop() : start())
 
+  const handleRowClick = useCallback((row) => {
+    setSelectedCard(row)
+    setSelectedIdx(null)
+  }, [])
+
+  const handleNavigate = useCallback((sectionId) => {
+    revealSection(sectionId)
+  }, [hot, working])
+
   const cur = live.current
   const engaged = history.length > 0 || !!cur.role
   const micState = !active ? 'idle' : thinking ? 'thinking' : speaking ? 'speaking' : 'listening'
 
   return (
-    <div className="shell">
-      <TopNav product={demo.product} doctor={demo.doctor} nav={demo.nav} />
-      <div className="body">
-        <aside className="rail">
-          <div className="rail__head"><span className="rail__spark">✦</span> {demo.product.title}<i className="rail__more">⋯</i></div>
+    <div className="shell pal">
+      <TopNav product={demo.product} doctor={demo.doctor} nav={demo.nav}
+        railOpen={railOpen} onToggleRail={() => setRailOpen(v => !v)} />
 
-          <div className="rail__scroll">
-            {!engaged && <LeftWelcome welcome={demo.welcome} onPick={start} />}
-            {engaged && (
-              <div className="chat">
-                {history.map((m, i) => <Msg key={i} role={m.role} text={m.text} />)}
-                {cur.role && <Msg role={cur.role} text={cur.text} live />}
-                {thinking && <div className="think"><span /><span /><span /> Thinking</div>}
-                {error && <div className="msg msg--err">{error}</div>}
-                <div ref={bottom} />
-              </div>
-            )}
-          </div>
-
-          <div className="composer">
-            {active && (
-              <div className="composer__orb">
-                <Blob state={micState} onTap={toggle} />
-                <small>
-                  {thinking && 'Thinking…'}
-                  {!thinking && speaking && 'Speaking…'}
-                  {!thinking && !speaking && 'Listening…'}
-                </small>
-              </div>
-            )}
-            <div className="composer__bar" onClick={() => !active && start()}>
-              <input placeholder="Tap the mic and speak…" readOnly />
-              <button className={`composer__mic ${active ? 'on' : ''}`} onClick={(e) => { e.stopPropagation(); toggle() }} aria-label="Talk">
-                {active ? '■' : '🎤'}
-              </button>
+      <div className={`app-rail ${railOpen ? '' : 'is-collapsed'}`}>
+        <div className="rail__head"><span className="rail__spark">✦</span> {demo.product.title}</div>
+        <div className="rail__scroll">
+          {!engaged && <LeftWelcome welcome={demo.welcome} onPick={start} />}
+          {engaged && (
+            <div className="chat">
+              {history.map((m, i) => <Msg key={i} role={m.role} text={m.text} />)}
+              {cur.role && <Msg role={cur.role} text={cur.text} live />}
+              {thinking && <div className="think"><span /><span /><span /> Thinking</div>}
+              {error && <div className="msg msg--err">{error}</div>}
+              <div ref={bottom} />
             </div>
+          )}
+        </div>
+        <div className="composer">
+          {active && (
+            <div className="composer__orb">
+              <Blob state={micState} onTap={toggle} />
+              <small>
+                {thinking && 'Thinking…'}
+                {!thinking && speaking && 'Speaking…'}
+                {!thinking && !speaking && 'Listening…'}
+              </small>
+            </div>
+          )}
+          <div className="composer__bar" onClick={() => !active && start()}>
+            <input placeholder="Tap the mic and speak…" readOnly />
+            <button className={`composer__mic ${active ? 'on' : ''}`} onClick={(e) => { e.stopPropagation(); toggle() }} aria-label="Talk">
+              {active ? '■' : '🎤'}
+            </button>
           </div>
-        </aside>
-
-        <main className="work">
-          {working
-            ? <ThinkingLog lines={workLines} done={workDone} />
-            : hot
-              ? <Dashboard key={hot}
-                  banner={hasRevealed ? demo.banner : null}
-                  cards={demo.dashboard.filter((c) => c.section === hot)} />
-              : <WorkspaceEmpty workspace={demo.welcome.workspace} />}
-        </main>
+        </div>
       </div>
+
+      <main className="app-main">
+        {working
+          ? <ThinkingLog lines={workLines} done={workDone} />
+          : hot
+            ? <Dashboard key={hot}
+                banner={hasRevealed ? demo.banner : null}
+                cards={demo.dashboard.filter((c) => c.section === hot)}
+                onRowClick={handleRowClick}
+                selectedIdx={selectedIdx} />
+            : <WorkspaceEmpty workspace={demo.welcome.workspace} />}
+      </main>
+
+      <Inspector selected={selectedCard} />
+
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)}
+        onNavigate={handleNavigate} sections={UNIQUE_SECTIONS} />
     </div>
   )
 }
