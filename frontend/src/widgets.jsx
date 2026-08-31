@@ -2,6 +2,7 @@
 // domain and this code is unchanged. To add a block type, write a component and
 // register it in BLOCKS at the bottom.
 
+import { useState, useEffect } from 'react'
 import logo from './assets/Spritle.png'
 
 /* ---------------- App shell ---------------- */
@@ -75,31 +76,92 @@ export function ThinkingLog({ lines, done }) {
 
 /* ---------------- Dashboard + cards ---------------- */
 
-// Renders only the cards for the ONE section the question matched — full-size,
-// filling the space (a single card goes full width, two split the row, etc via
-// CSS grid auto-fit). No dimmed siblings, no leftover empty space.
+// Auto-expand multi-item blocks into individual cards at render time.
+const SPLIT = {
+  table:     { prop: 'rows',     title: (row) => row[1] || row[0] },
+  stats:     { prop: 'items',    title: (item) => item.label },
+  flow:      { prop: 'items',    title: (item) => item.dept },
+  checklist: { prop: 'items',    title: (text) => text },
+  report:    { prop: 'sections', title: (sec) => sec.heading },
+  trends:    { prop: 'rows',     title: (row) => row.test },
+  keyvalue:  { prop: 'items',    title: (item) => item.label },
+}
+
+function expandCards(cards) {
+  return cards.flatMap(card => {
+    const expanded = []
+    for (const block of (card.blocks || [])) {
+      const split = SPLIT[block.type]
+      if (split) {
+        const items = block[split.prop] || []
+        items.forEach((item, i) => {
+          expanded.push({
+            ...card,
+            id: `${card.id}-${i}`,
+            title: split.title(item),
+            blocks: [{ ...block, [split.prop]: [item] }]
+          })
+        })
+        if (block.type === 'checklist' && block.gauge) {
+          expanded.push({
+            ...card,
+            id: `${card.id}-gauge`,
+            title: block.gauge.label,
+            blocks: [{ type: 'checklist', items: [], gauge: block.gauge }]
+          })
+        }
+      } else {
+        expanded.push({ ...card })
+        break
+      }
+    }
+    return expanded.length ? expanded : [card]
+  })
+}
+
+// Responsive column count based on viewport width
+function useColumnCount() {
+  const [cols, setCols] = useState(3)
+  useEffect(() => {
+    const update = () => {
+      const w = window.innerWidth
+      setCols(w < 640 ? 1 : w < 900 ? 2 : 3)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
+  return cols
+}
+
+// Renders only the cards for the ONE section the question matched.
+// CSS columns provide vertical ordering (top-to-bottom per column) and
+// dynamic card heights that size to content.
 export function Dashboard({ banner, cards }) {
-  const solo = cards.length === 1
+  const expanded = expandCards(cards)
+  const cols = useColumnCount()
   return (
     <div className="dash dash--big">
       {banner && <Banner {...banner} />}
-      <div className="dash__grid">
-        {cards.map((c, ci) => (
-          <Card key={ci} className={solo || c.wide ? 'card--wide' : ''} eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
-            {(c.blocks || []).map((b, i) => {
-              const C = BLOCKS[b && b.type] || null
-              return C ? <C key={i} {...b} /> : null
-            })}
-          </Card>
+      <div className="dash__cols" style={{ columnCount: cols }}>
+        {expanded.map((c, ci) => (
+          <div key={ci} className="dash__col-item">
+            <Card eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
+              {(c.blocks || []).map((b, i) => {
+                const C = BLOCKS[b && b.type] || null
+                return C ? <C key={i} {...b} /> : null
+              })}
+            </Card>
+          </div>
         ))}
       </div>
     </div>
   )
 }
 
-function Card({ eyebrow, title, badge, link, className = '', children }) {
+function Card({ eyebrow, title, badge, link, children }) {
   return (
-    <section className={`card ${className}`}>
+    <section className="card">
       {(eyebrow || title || badge) && (
         <header className="card__head">
           <div>
