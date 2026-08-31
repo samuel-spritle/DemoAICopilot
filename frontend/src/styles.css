@@ -138,33 +138,32 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .banner__fact small { display: block; font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: .5px; }
 .banner__fact b { font-size: 15px; font-weight: 600; margin-top: 6px; display: block; }
 
-/* Grid: auto-fit collapses empty tracks, so 1 card fills the row, 2 split it evenly,
-   3+ wrap — no dead columns, no leftover empty space regardless of card count. */
-.dash__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 18px; align-items: start; }
-.card--wide { grid-column: 1 / -1; }
+/* CSS columns — vertical ordering (top-to-bottom per column), dynamic card heights */
+.dash__cols { column-gap: 18px; padding: 0 28px; }
+.dash__col-item { break-inside: avoid; margin-bottom: 18px; display: inline-block; width: 100%; }
 
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px 28px; box-shadow: var(--shadow);
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; box-shadow: var(--shadow);
   animation: fadeUp .4s ease both; }
-.card__head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+.card__head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
 .card__head > div:first-child { margin-right: auto; }
 .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--primary); }
 .eyebrow::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
-.card h3 { font-size: 19px; font-weight: 650; margin-top: 7px; }
+.card h3 { font-size: 16px; font-weight: 650; margin-top: 7px; }
 .card__badge { font-size: 12px; font-weight: 600; color: var(--pos); background: rgba(53,208,127,.14); padding: 4px 11px; border-radius: 20px; white-space: nowrap; }
 .card__link { font-size: 11.5px; color: var(--primary); white-space: nowrap; }
 .sub { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 18px 0 12px; }
 
 /* table */
-.grid { width: 100%; border-collapse: collapse; }
-.grid th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--faint); padding: 0 10px 10px; font-weight: 600; }
+.grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.grid th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--faint); padding: 0 8px 8px; font-weight: 600; }
 .grid th.r, .grid td.r { text-align: right; }
-.grid td { padding: 10px; border-top: 1px solid rgba(255,255,255,.05); font-size: 13px; }
+.grid td { padding: 8px; border-top: 1px solid rgba(255,255,255,.05); font-size: 12px; word-break: break-word; }
 .grid tbody tr { animation: fadeUp .35s ease both; }
 .row-hi { background: rgba(123,108,255,.08); }
-.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 10px; border-radius: 20px; background: #1a2338; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 10px; border-radius: 20px; background: #1a2338; color: var(--muted); white-space: nowrap; }
 .pill-hi { background: rgba(123,108,255,.16); color: var(--primary); }
 .pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary); }
-.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--pos); background: rgba(53,208,127,.14); padding: 3px 10px; border-radius: 20px; }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--pos); background: rgba(53,208,127,.14); padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
 
 /* trends */
 .trends .arrow { font-weight: 700; }
@@ -183,11 +182,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* kpis */
 .kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
-.kpi { position: relative; overflow: hidden; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; animation: fadeUp .4s ease both; }
+.kpi { position: relative; overflow: hidden; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; animation: fadeUp .4s ease both; }
 .kpi::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); }
 .kpi--down::before { background: var(--pos); } .kpi--up::before { background: var(--neg); } .kpi--flat::before { background: var(--faint); }
 .kpi__label { display: block; font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .4px; }
-.kpi__value { display: block; margin-top: 7px; font-size: 20px; font-weight: 700; }
+.kpi__value { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; }
 .kpi--down .kpi__value { color: var(--pos); } .kpi--up .kpi__value { color: var(--neg); }
 .kpi__note { font-size: 11px; color: var(--muted); }
 
@@ -241,7 +240,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .flow { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 .flow li { display: flex; align-items: center; gap: 11px; background: var(--card2); border: 1px solid var(--line); border-left: 3px solid var(--pos); padding: 11px 13px; border-radius: 10px; animation: fadeUp .35s ease both; }
 .flow-check { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 11px; font-weight: 700; color: var(--pos); background: rgba(53,208,127,.16); }
-.flow-dept { font-weight: 600; font-size: 13px; } .flow-status { margin-left: auto; color: var(--muted); font-size: 12px; }
+.flow-dept { font-weight: 600; font-size: 13px; flex: none; } .flow-status { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
 
 .block-text { line-height: 1.6; color: #c6d2ea; font-size: 13.5px; }
 
