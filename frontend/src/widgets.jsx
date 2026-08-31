@@ -2,8 +2,7 @@
 // domain and this code is unchanged. To add a block type, write a component and
 // register it in BLOCKS at the bottom.
 
-import { useState, useEffect } from 'react'
-import logo from './assets/Spritle.png'
+import logo from './assets/Spritle2.png'
 
 /* ---------------- App shell ---------------- */
 
@@ -119,42 +118,48 @@ function expandCards(cards) {
   })
 }
 
-// Responsive column count based on viewport width
-function useColumnCount() {
-  const [cols, setCols] = useState(3)
-  useEffect(() => {
-    const update = () => {
-      const w = window.innerWidth
-      setCols(w < 640 ? 1 : w < 900 ? 2 : 3)
-    }
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
-  }, [])
-  return cols
-}
+const WIDE_TYPES = new Set(['chart', 'compare'])
 
-// Renders only the cards for the ONE section the question matched.
-// CSS columns provide vertical ordering (top-to-bottom per column) and
-// dynamic card heights that size to content.
 export function Dashboard({ banner, cards }) {
   const expanded = expandCards(cards)
-  const cols = useColumnCount()
+  const wideCards = expanded.filter(c => c.blocks?.some(b => WIDE_TYPES.has(b.type)))
+  const columnCards = expanded.filter(c => !c.blocks?.some(b => WIDE_TYPES.has(b.type)))
+  const hasWide = wideCards.length > 0 && columnCards.length > 0
+
+  const renderCard = (c, i) => (
+    <Card key={i} eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
+      {(c.blocks || []).map((b, j) => {
+        const C = BLOCKS[b && b.type] || null
+        return C ? <C key={j} {...b} /> : null
+      })}
+    </Card>
+  )
+
   return (
-    <div className="dash dash--big">
+    <div className="dash">
       {banner && <Banner {...banner} />}
-      <div className="dash__cols" style={{ columnCount: cols }}>
-        {expanded.map((c, ci) => (
-          <div key={ci} className="dash__col-item">
-            <Card eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
-              {(c.blocks || []).map((b, i) => {
-                const C = BLOCKS[b && b.type] || null
-                return C ? <C key={i} {...b} /> : null
-              })}
-            </Card>
+      {hasWide ? (
+        <div className="dash__split">
+          <div className="dash__wide">
+            {wideCards.map(renderCard)}
           </div>
-        ))}
-      </div>
+          <div className="dash__smalls">
+            {columnCards.map((c, i) => (
+              <div key={i} className="dash__col-item">{renderCard(c, i)}</div>
+            ))}
+          </div>
+        </div>
+      ) : columnCards.length > 0 ? (
+        <div className="dash__full">
+          {columnCards.map((c, i) => (
+            <div key={i} className="dash__col-item">{renderCard(c, i)}</div>
+          ))}
+        </div>
+      ) : (
+        <div className="dash__stack">
+          {wideCards.map(renderCard)}
+        </div>
+      )}
     </div>
   )
 }
@@ -278,7 +283,7 @@ function Compare({ left, right, caption }) {
 }
 
 function Chart({ points, unit }) {
-  const W = 520, H = 200, padX = 30, padY = 22
+  const W = 520, H = 280, padX = 30, padY = 30
   const vals = points.map((p) => p.value)
   const max = Math.max(...vals) * 1.06, min = Math.min(...vals) * 0.9
   const x = (i) => padX + (i * (W - 2 * padX)) / (points.length - 1)
