@@ -72,6 +72,7 @@ export default function App() {
   const [speaking, setSpeaking] = useState(false)
   const [thinking, setThinking] = useState(false)
   const [hot, setHot] = useState(null)       // section currently on screen
+  const [hasRevealed, setHasRevealed] = useState(false)  // any section ever revealed?
   const [working, setWorking] = useState(null)  // section whose thinking sequence is playing
   const [workLines, setWorkLines] = useState([])
   const [workDone, setWorkDone] = useState(false)
@@ -124,6 +125,7 @@ export default function App() {
     setWorkDone(true)
     await sleep(450)
     if (runId.current !== id) return
+    setHasRevealed(true)
     setHot(sec); setWorking(null)
     revealing.current = false
     session.current?.release()
@@ -221,7 +223,7 @@ export default function App() {
             ? <ThinkingLog lines={workLines} done={workDone} />
             : hot
               ? <Dashboard key={hot}
-                  banner={hot === demo.banner.section ? demo.banner : null}
+                  banner={hasRevealed ? demo.banner : null}
                   cards={demo.dashboard.filter((c) => c.section === hot)} />
               : <WorkspaceEmpty workspace={demo.welcome.workspace} />}
         </main>
