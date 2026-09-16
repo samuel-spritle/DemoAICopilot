@@ -15,6 +15,21 @@
       "sources": []
     }
   },
+  "welcomeScreen": {
+    "avatar": "SW",
+    "name": "Dr. Sarah Wilson",
+    "role": "Oncologist",
+    "org": "Oncology Department",
+    "product": "AI Oncology Copilot",
+    "description": "Enterprise oncology copilot for patient management, treatment tracking, and clinical decision support. Monitor chemotherapy responses, tumor progression, and workflow status across your practice.",
+    "stats": [
+      { "label": "Appointments Today", "value": "8", "trend": "flat", "note": "scheduled" },
+      { "label": "Critical Alerts", "value": "1", "trend": "up", "note": "satellite lesions" },
+      { "label": "Patient Compliance", "value": "98%", "trend": "flat", "note": "Emily Johnson" },
+      { "label": "Tumor Reduction", "value": "▼18%", "trend": "down", "note": "over 6 months" }
+    ],
+    "hint": "Ask about patient status, treatment plans, or clinical recommendations"
+  },
   "banner": {
     "section": "patient", "avatar": "EJ", "name": "Emily Johnson",
     "facts": [
@@ -66,8 +81,11 @@
     }]},
     { "id": "recommendations", "section": "recommendations", "title": "AI Recommendations", "blocks": [{
       "type": "checklist",
-      "items": ["Continue Chemotherapy", "PET-CT Scan", "Molecular Profiling", "Tumor Board Review", "Evaluate Targeted Therapy"],
-      "gauge": { "percent": 94, "label": "Clinical Confidence", "note": "" }
+      "items": ["Continue Chemotherapy", "PET-CT Scan", "Molecular Profiling", "Tumor Board Review", "Evaluate Targeted Therapy"]
+    }]},
+    { "id": "confidence-gauge", "section": "recommendations", "eyebrow": "Confidence", "title": "Clinical Confidence", "blocks": [{
+      "type": "gauge-card", "percent": 94, "label": "Clinical Confidence", "note": "",
+      "tasks": ["Continue Chemotherapy", "PET-CT Scan", "Molecular Profiling", "Tumor Board Review", "Evaluate Targeted Therapy"]
     }]},
     { "id": "workflow", "section": "workflow", "title": "Workflow Status", "blocks": [{
       "type": "flow", "items": [

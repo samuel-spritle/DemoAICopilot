@@ -37,7 +37,7 @@ HERE = os.path.dirname(__file__)
 DIST = os.path.join(HERE, "..", "frontend", "dist")
 SRC = os.path.join(HERE, "..", "frontend", "src")
 
-DEMO_FILES = {"oncology": "demo.json", "radiology": "demo.radiology.json"}
+DEMO_FILES = {"oncology": "demo.json", "radiology": "demo.radiology.json", "pricing": "demo.pricing.json"}
 DEMOS = {}
 for _key, _fname in DEMO_FILES.items():
     with open(os.path.join(SRC, _fname), encoding="utf-8") as f:

@@ -15,6 +15,21 @@
       "sources": []
     }
   },
+  "welcomeScreen": {
+    "avatar": "MR",
+    "name": "Dr. Michael Ross",
+    "role": "Radiologist",
+    "org": "Radiology Department",
+    "product": "COWORKER - Radiology",
+    "description": "Enterprise radiology copilot for study prioritization, DICOM comparison, structured reporting, and workflow management. AI-powered priority queue with real-time alert routing.",
+    "stats": [
+      { "label": "Pending Studies", "value": "42", "trend": "up", "note": "today" },
+      { "label": "Critical Priority", "value": "5", "trend": "up", "note": "highest" },
+      { "label": "High Priority", "value": "11", "trend": "flat" },
+      { "label": "Routine", "value": "8", "trend": "flat" }
+    ],
+    "hint": "Ask about study priority, comparisons, or report generation"
+  },
   "banner": {
     "section": "patient", "avatar": "JM", "name": "John Miller",
     "facts": [

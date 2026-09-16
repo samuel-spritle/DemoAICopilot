@@ -1,0 +1,288 @@
+{
+  "product": { "mark": "✦", "title": "Dynamic Pricing Advisory Agent", "tag": "Pricing", "status": "Connected" },
+  "doctor": { "name": "Ananya Rajan", "role": "Category Manager – Women's Ethnic Wear", "avatar": "AR" },
+  "nav": ["Dashboard", "Inventory", "Competitors", "Actions", "Analytics", "Reports"],
+  "voice": "Charon",
+  "systemInstruction": "You are an enterprise pricing copilot speaking live with Ananya Rajan, Category Manager for Women's Ethnic Wear at Trendloom Apparel. Speak naturally, warmly and concisely — you are talking out loud, so keep answers to a few spoken sentences. Ground every answer ONLY in the reference data below; never invent facts or add anything not stated here. Just answer in speech — never describe or narrate any on-screen action, and never mention tools, functions, or panels; the screen updates automatically from what you say.\n\nRESPOND ONLY WHEN ADDRESSED: Answer ONLY when Ananya is clearly speaking to you and asking a question or giving a command. If speech is not directed at you — side conversation, thinking aloud, background chatter, or an incomplete utterance — stay completely SILENT and produce no audio. React only; never greet or volunteer unprompted.\n\nCONTEXT: Trendloom Apparel operates 40 stores across South India plus a Shopify e-commerce channel, selling 1,200 women's ethnic and fusion wear SKUs. D2C fast-fashion competitors reprice hourly; Trendloom currently reprices monthly via spreadsheet. Ananya answers to the CFO weekly on margin drift.\n\nKEY METRICS: Revenue at risk from mispriced SKUs: ₹4.8L this week. Pending price actions: 7. Average margin vs last week: down 1.2%. Competitor moves detected in last 24 hours: 3. Minimum margin guardrail: 22%.\n\nMARGIN LEAKAGE: 12 SKUs are underpriced vs demand, mostly floral kurta sets — ₹1.6L in margin left on the table this week. Top 5 underpriced SKUs: FK-2291 (current ₹899, recommended ₹971, gap ₹72), FK-2305 (current ₹1,199, recommended ₹1,312, gap ₹113), FK-2288 (current ₹749, recommended ₹801, gap ₹52), FK-2310 (current ₹999, recommended ₹1,089, gap ₹90), FK-2299 (current ₹1,099, recommended ₹1,198, gap ₹99). Weekly margin trend: down 1.2% week-over-week. Leakage flagged where sell-through velocity is above the 85th percentile while price sits below the optimal band.\n\nCOMPETITOR MOVES: Biba dropped prices 12% on floral kurtas at 6:04 AM today. You are now 15% above them on 8 matching SKUs with healthy stock. Recommended action: match 6% on 5 SKUs, hold on 3 exclusive prints. Biba detection was 4 hours 50 minutes faster than manual tracking would have caught it. Other competitors monitored: W, Global Desi. Biba led with 22 price moves this month averaging 8% cuts concentrated in ethnic wear.\n\nSELL-THROUGH AND ELASTICITY: SKU FK-2291 (floral kurta set) is selling at 3.2x the category average with only 12 days of stock left across 6 stores and 340 units. An 8% price increase would protect margin without meaningfully slowing sell-through. Do not recommend above 10% — that is where elasticity drop-off starts. Projected margin from +8% increase: +₹42K over remaining runway. Elasticity model based on last 6 comparable SKU price changes.\n\nDAILY ACTIONS: 3 priority actions for today: (1) Match Biba on 5 kurta SKUs — margin impact ₹32K weekly, (2) Raise FK-2291 by 8% — margin impact +₹42K over runway, (3) Clear 2 slow-movers flagged for markdown by Markdown Optimization Copilot — recover ₹16K. Combined projected margin impact: ₹58K weekly. Markdown-flagged SKUs auto-surfaced from Markdown Optimization Copilot handoff.\n\nFOLLOW-UP ACTIONS (if asked): Schedule competitor monitoring alerts for Biba, W, Global Desi. Set up automated markdown recommendations for slow-movers below 0.5 units/store/week. Push approved price changes to Shopify and POS. Generate weekly margin drift report for CFO.",
+  "welcome": {
+    "greeting": "Welcome Ananya",
+    "sub": "Dynamic Pricing Advisory Agent",
+    "hint": "Ask about margin leakage, competitor moves, or pricing actions",
+    "suggestions": [
+      { "icon": "📉", "text": "Where am I losing margin right now?" },
+      { "icon": "🏪", "text": "Did competitors drop prices overnight?" },
+      { "icon": "📈", "text": "Should I raise the price on fast sellers?" },
+      { "icon": "✅", "text": "Give me today's pricing actions to approve" }
+    ],
+    "workspace": {
+      "title": "Pricing Dashboard",
+      "sub": "Ask a question and the relevant panel lights up",
+      "sources": ["Shopify POS", "Competitor Feed", "Sales Data", "Inventory System"]
+    }
+  },
+  "welcomeScreen": {
+    "avatar": "AR",
+    "name": "Ananya Rajan",
+    "role": "Category Manager – Women's Ethnic Wear",
+    "org": "Trendloom Apparel",
+    "product": "Dynamic Pricing Advisory Agent",
+    "description": "Owns pricing and margin for 1,200 ethnic wear SKUs across 40 stores plus Shopify. D2C fast-fashion rivals reprice hourly; Trendloom reprices monthly via spreadsheet.",
+    "stats": [
+      { "label": "Revenue at Risk", "value": "₹4.8L", "trend": "up", "note": "this week" },
+      { "label": "Pending Actions", "value": "7", "trend": "flat", "note": "to review" },
+      { "label": "Avg Margin", "value": "▼1.2%", "trend": "down", "note": "vs last week" },
+      { "label": "Competitor Moves", "value": "3", "trend": "flat", "note": "last 24h" }
+    ],
+    "hint": "Tap the mic and ask about margin, competitors, or pricing actions"
+  },
+  "banner": {
+    "section": "margin", "avatar": "FK", "name": "Floral Kurta Sets — Margin Alert",
+    "facts": [
+      { "label": "SKUs Flagged", "value": "12" },
+      { "label": "Margin Leakage", "value": "₹1.6L" },
+      { "label": "Min Guardrail", "value": "22%" },
+      { "label": "Trend", "value": "▼1.2% WoW" }
+    ]
+  },
+  "dashboard": [
+    {
+      "id": "margin-heatmap",
+      "section": "margin",
+      "eyebrow": "Margin Analysis",
+      "title": "Margin Leakage Map",
+      "badge": "12 SKUs",
+      "blocks": [{
+        "type": "heatmap",
+        "title": "SKU × Store Margin Heatmap",
+        "subtitle": "Red = underpriced vs demand | Green = optimal",
+        "rows": ["FK-2291", "FK-2305", "FK-2288", "FK-2310", "FK-2299"],
+        "cols": ["Anna Nagar", "Velachery", "T Nagar", "Adyar", "OMR", "Online"],
+        "values": [
+          [0.82, 0.91, 0.78, 0.95, 0.88, 0.72],
+          [0.65, 0.70, 0.68, 0.74, 0.71, 0.60],
+          [0.88, 0.92, 0.85, 0.90, 0.87, 0.80],
+          [0.75, 0.80, 0.73, 0.82, 0.78, 0.69],
+          [0.70, 0.76, 0.71, 0.79, 0.74, 0.66]
+        ]
+      }]
+    },
+    {
+      "id": "margin-top5",
+      "section": "margin",
+      "title": "Top 5 Underpriced SKUs",
+      "blocks": [{
+        "type": "table",
+        "columns": ["SKU", "Current Price", "Rec. Price", "Margin Gap", "Sell-Through"],
+        "highlight": "FK-2305",
+        "rows": [
+          ["FK-2305", "₹1,199", "₹1,312", "₹113", "89%"],
+          ["FK-2299", "₹1,099", "₹1,198", "₹99", "82%"],
+          ["FK-2310", "₹999", "₹1,089", "₹90", "78%"],
+          ["FK-2291", "₹899", "₹971", "₹72", "91%"],
+          ["FK-2288", "₹749", "₹801", "₹52", "85%"]
+        ]
+      }]
+    },
+    {
+      "id": "margin-trend",
+      "section": "margin",
+      "eyebrow": "Trend",
+      "title": "Weekly Margin Trend",
+      "badge": "▼1.2% WoW",
+      "blocks": [{
+        "type": "chart",
+        "unit": "%",
+        "points": [
+          { "label": "Mon", "value": 24.1 },
+          { "label": "Tue", "value": 23.8 },
+          { "label": "Wed", "value": 23.5 },
+          { "label": "Thu", "value": 23.2 },
+          { "label": "Fri", "value": 22.9 },
+          { "label": "Sat", "value": 22.7 }
+        ]
+      }]
+    },
+    {
+      "id": "competitor-chart",
+      "section": "competitors",
+      "eyebrow": "Competitor Intelligence",
+      "title": "Competitor Price Comparison",
+      "badge": "Biba drop",
+      "blocks": [{
+        "type": "chart",
+        "variant": "bar",
+        "unit": "%",
+        "points": [
+          { "label": "FK-2291", "value": 15 },
+          { "label": "FK-2305", "value": 12 },
+          { "label": "FK-2288", "value": 18 },
+          { "label": "FK-2310", "value": 10 },
+          { "label": "FK-2299", "value": 14 },
+          { "label": "FK-2315", "value": 9 },
+          { "label": "FK-2320", "value": 16 },
+          { "label": "FK-2325", "value": 11 }
+        ]
+      }]
+    },
+    {
+      "id": "competitor-actions",
+      "section": "competitors",
+      "title": "Recommended Actions",
+      "blocks": [{
+        "type": "checklist",
+        "items": [
+          "Match Biba on FK-2291 (6% cut)",
+          "Match Biba on FK-2305 (6% cut)",
+          "Match Biba on FK-2288 (6% cut)",
+          "Match Biba on FK-2310 (6% cut)",
+          "Match Biba on FK-2299 (6% cut)",
+          "Hold FK-2315 (exclusive print, no competitor match)",
+          "Hold FK-2320 (exclusive print, no competitor match)",
+          "Hold FK-2325 (exclusive print, no competitor match)"
+        ]
+      }]
+    },
+    {
+      "id": "price-gap-gauge",
+      "section": "competitors",
+      "eyebrow": "Price Gap",
+      "title": "Price Gap",
+      "blocks": [{
+        "type": "gauge-card", "percent": 62, "label": "Price Gap", "note": "15% → target 6%",
+        "tasks": [
+          "Match Biba on FK-2291",
+          "Match Biba on FK-2305",
+          "Match Biba on FK-2288",
+          "Match Biba on FK-2310",
+          "Match Biba on FK-2299",
+          "Hold FK-2315",
+          "Hold FK-2320",
+          "Hold FK-2325"
+        ]
+      }]
+    },
+    {
+      "id": "elasticity-chart",
+      "section": "elasticity",
+      "eyebrow": "Price Elasticity",
+      "title": "Sell-Through Velocity",
+      "badge": "3.2x avg",
+      "match": ["selling", "fast", "velocity", "units", "kurta", "floral"],
+      "blocks": [{
+        "type": "chart",
+        "unit": "units/day",
+        "points": [
+          { "label": "Jan", "value": 12 },
+          { "label": "Feb", "value": 18 },
+          { "label": "Mar", "value": 28 },
+          { "label": "Apr", "value": 35 },
+          { "label": "May", "value": 42 },
+          { "label": "Jun", "value": 38 }
+        ]
+      }]
+    },
+    {
+      "id": "elasticity-simulator",
+      "section": "elasticity",
+      "title": "Price Elasticity Simulator",
+      "match": ["raise", "price", "increase", "margin", "kurta"],
+      "blocks": [{
+        "type": "simulator",
+        "sku": "FK-2291",
+        "scenarios": [
+          { "change": "+5%", "projectedMargin": "+₹22K", "sellThroughImpact": "Minimal", "recommended": false },
+          { "change": "+8%", "projectedMargin": "+₹42K", "sellThroughImpact": "Low", "recommended": true },
+          { "change": "+12%", "projectedMargin": "+₹56K", "sellThroughImpact": "High drop-off", "recommended": false }
+        ]
+      }]
+    },
+    {
+      "id": "elasticity-stock",
+      "section": "elasticity",
+      "eyebrow": "Stock Runway",
+      "title": "Stock Runway",
+      "match": ["stock", "runway", "days", "left", "selling"],
+      "blocks": [{
+        "type": "countdown",
+        "value": 12,
+        "unit": "days",
+        "label": "Stock Runway",
+        "note": "at current velocity"
+      }]
+    },
+    {
+      "id": "actions-summary",
+      "section": "actions",
+      "eyebrow": "Daily Actions",
+      "title": "Priority Actions",
+      "badge": "3 pending",
+      "blocks": [{
+        "type": "checklist",
+        "items": [
+          "Match Biba on 5 kurta SKUs — ₹32K weekly impact",
+          "Raise FK-2291 by 8% — +₹42K over runway",
+          "Clear 2 slow-movers for markdown — recover ₹16K"
+        ],
+        "meter": { "label": "Combined Projected Impact", "percent": 82 }
+      }]
+    },
+    {
+      "id": "actions-impact",
+      "section": "actions",
+      "eyebrow": "Projected Impact",
+      "title": "Projected Margin Impact",
+      "badge": "₹58K/wk",
+      "blocks": [{
+        "type": "chart",
+        "variant": "bar",
+        "unit": "₹K",
+        "points": [
+          { "label": "Match Biba", "value": 32 },
+          { "label": "Raise FK-2291", "value": 42 },
+          { "label": "Markdown", "value": 16 }
+        ]
+      }]
+    },
+    {
+      "id": "actions-buttons",
+      "section": "actions",
+      "title": "Approval",
+      "blocks": [{
+        "type": "actions",
+        "actions": [
+          { "label": "Approve All 3", "primary": true },
+          { "label": "Review Individually", "primary": false }
+        ]
+      }]
+    }
+  ],
+  "thinking": {
+    "margin": [
+      "Connecting to live sales velocity feed...",
+      "Cross-referencing 1,200 SKUs against competitor pricing...",
+      "Flagging SKUs below optimal margin band...",
+      "Verifying against 22% minimum-margin guardrail...",
+      "Building margin leakage heatmap..."
+    ],
+    "competitors": [
+      "Scanning competitor price feeds (Biba, W, Global Desi)...",
+      "Comparing to 140-SKU kurta catalog...",
+      "Flagging deltas greater than 8%...",
+      "Checking current stock position...",
+      "Generating competitor comparison chart..."
+    ],
+    "elasticity": [
+      "Checking sell-through velocity for SKU FK-2291...",
+      "Cross-referencing stock position across 6 stores...",
+      "Simulating elasticity at +5%, +8%, +12%...",
+      "Verifying no markdown calendar conflict...",
+      "Running elasticity model on last 6 comparable price changes..."
+    ],
+    "actions": [
+      "Consolidating today's flagged pricing actions...",
+      "Ranking by margin impact and urgency...",
+      "Preparing one-click approval batch...",
+      "Formatting daily action summary..."
+    ]
+  }
+}

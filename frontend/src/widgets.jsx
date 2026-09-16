@@ -2,6 +2,7 @@
 // domain and this code is unchanged. To add a block type, write a component and
 // register it in BLOCKS at the bottom.
 
+import { useState } from 'react'
 import logo from './assets/Spritle2.png'
 
 /* ---------------- App shell ---------------- */
@@ -58,6 +59,33 @@ export function WorkspaceEmpty({ workspace }) {
   )
 }
 
+export function WelcomeScreen({ welcomeScreen }) {
+  return (
+    <div className="ws">
+      <div className="ws__header">
+        <div className="ws__avatar">{welcomeScreen.avatar}</div>
+        <div className="ws__info">
+          <h2>{welcomeScreen.name}</h2>
+          <div className="ws__role">{welcomeScreen.role}</div>
+          <div className="ws__org">{welcomeScreen.org}</div>
+        </div>
+      </div>
+      <div className="ws__product">{welcomeScreen.product}</div>
+      <p className="ws__desc">{welcomeScreen.description}</p>
+      <div className="ws__stats">
+        {welcomeScreen.stats.map((s, i) => (
+          <div key={i} className={`ws__stat ws__stat--${s.trend || 'flat'}`}>
+            <span className="ws__stat-label">{s.label}</span>
+            <span className="ws__stat-value">{s.value}</span>
+            {s.note && <span className="ws__stat-note">{s.note}</span>}
+          </div>
+        ))}
+      </div>
+      <div className="ws__hint">{welcomeScreen.hint}</div>
+    </div>
+  )
+}
+
 // Sequential diagnostic log shown while the agent "works" on an answer —
 // lines arrive one at a time (App.jsx paces them from demo.json's thinking[section]),
 // then a Done checkmark right before the real panel replaces this view.
@@ -101,14 +129,6 @@ function expandCards(cards) {
             blocks: [{ ...block, [split.prop]: [item] }]
           })
         })
-        if (block.type === 'checklist' && block.gauge) {
-          expanded.push({
-            ...card,
-            id: `${card.id}-gauge`,
-            title: block.gauge.label,
-            blocks: [{ type: 'checklist', items: [], gauge: block.gauge }]
-          })
-        }
       } else {
         expanded.push({ ...card })
         break
@@ -118,13 +138,33 @@ function expandCards(cards) {
   })
 }
 
-const WIDE_TYPES = new Set(['chart', 'compare'])
+const WIDE_TYPES = new Set(['chart', 'compare', 'heatmap', 'gauge-card'])
 
 export function Dashboard({ banner, cards }) {
   const expanded = expandCards(cards)
   const wideCards = expanded.filter(c => c.blocks?.some(b => WIDE_TYPES.has(b.type)))
   const columnCards = expanded.filter(c => !c.blocks?.some(b => WIDE_TYPES.has(b.type)))
   const hasWide = wideCards.length > 0 && columnCards.length > 0
+
+  const defaultMajor = columnCards.slice(0, 2).map(c => c.id)
+  const [majorIds, setMajorIds] = useState(defaultMajor)
+
+  const majorCards = columnCards.filter(c => majorIds.includes(c.id))
+  const minorCards = columnCards.filter(c => !majorIds.includes(c.id))
+
+  const swapCard = (clickedId) => {
+    setMajorIds(prev => {
+      if (prev.includes(clickedId)) {
+        if (prev.length <= 1) return prev
+        const firstMajor = prev[0]
+        return prev.filter(id => id !== clickedId)
+      } else {
+        const newMajor = [clickedId, ...prev]
+        if (newMajor.length > 2) newMajor.pop()
+        return newMajor
+      }
+    })
+  }
 
   const renderCard = (c, i) => (
     <Card key={i} eyebrow={c.eyebrow} title={c.title} badge={c.badge} link={c.link}>
@@ -135,6 +175,13 @@ export function Dashboard({ banner, cards }) {
     </Card>
   )
 
+  const renderMinorCard = (c, i) => (
+    <div key={i} className="dash__minor" onClick={() => swapCard(c.id)}>
+      <span className="dash__minor-title">{c.title}</span>
+      {c.badge && <span className="dash__minor-badge">{c.badge}</span>}
+    </div>
+  )
+
   return (
     <div className="dash">
       {banner && <Banner {...banner} />}
@@ -143,10 +190,20 @@ export function Dashboard({ banner, cards }) {
           <div className="dash__wide">
             {wideCards.map(renderCard)}
           </div>
-          <div className="dash__smalls">
-            {columnCards.map((c, i) => (
-              <div key={i} className="dash__col-item">{renderCard(c, i)}</div>
-            ))}
+          <div className="dash__tasks">
+            <div className="dash__major">
+              {majorCards.map((c, i) => (
+                <div key={i} className="dash__major-item">{renderCard(c, i)}</div>
+              ))}
+            </div>
+            {minorCards.length > 0 && (
+              <div className="dash__minor-zone">
+                <div className="dash__minor-label">Minor Tasks</div>
+                <div className="dash__minor-grid">
+                  {minorCards.map(renderMinorCard)}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : columnCards.length > 0 ? (
@@ -282,15 +339,37 @@ function Compare({ left, right, caption }) {
   )
 }
 
-function Chart({ points, unit }) {
+function Chart({ points, unit, variant }) {
   const W = 520, H = 280, padX = 30, padY = 30
   const vals = points.map((p) => p.value)
-  const max = Math.max(...vals) * 1.06, min = Math.min(...vals) * 0.9
-  const x = (i) => padX + (i * (W - 2 * padX)) / (points.length - 1)
-  const y = (v) => padY + ((max - v) / (max - min || 1)) * (H - 2 * padY)
-  const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${y(p.value)}`).join(' ')
-  const area = `${line} L${x(points.length - 1)},${H - padY} L${x(0)},${H - padY} Z`
+  const max = Math.max(...vals) * 1.06, min = 0
   const grid = [0, 0.5, 1].map((t) => padY + t * (H - 2 * padY))
+
+  if (variant === 'bar') {
+    const slotW = (W - 2 * padX) / points.length
+    const barW = slotW * 0.55
+    const y = (v) => padY + ((max - v) / (max - min || 1)) * (H - 2 * padY)
+    return (
+      <svg className="chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+        {grid.map((gy, i) => <line key={i} className="chart-grid" x1={padX} x2={W - padX} y1={gy} y2={gy} />)}
+        {points.map((p, i) => {
+          const bx = padX + i * slotW + (slotW - barW) / 2
+          return (
+            <g key={i}>
+              <rect className="chart-bar" x={bx} y={y(p.value)} width={barW} height={H - padY - y(p.value)} rx="3" style={{ animationDelay: `${i * 100}ms` }} />
+              <text className="chart-x" x={bx + barW / 2} y={H - 5}>{p.label}</text>
+              <text className="chart-v" x={bx + barW / 2} y={y(p.value) - 10}>{p.value}{unit || ''}</text>
+            </g>
+          )
+        })}
+      </svg>
+    )
+  }
+
+  const x = (i) => padX + (i * (W - 2 * padX)) / (points.length - 1)
+  const yLine = (v) => padY + ((max - v) / (max - Math.min(...vals) * 0.9 || 1)) * (H - 2 * padY)
+  const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(i)},${yLine(p.value)}`).join(' ')
+  const area = `${line} L${x(points.length - 1)},${H - padY} L${x(0)},${H - padY} Z`
   return (
     <svg className="chart" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
       <defs>
@@ -304,9 +383,9 @@ function Chart({ points, unit }) {
       <path className="chart-line" d={line} />
       {points.map((p, i) => (
         <g key={i}>
-          <circle className="chart-dot" cx={x(i)} cy={y(p.value)} r="4" style={{ animationDelay: `${i * 100}ms` }} />
+          <circle className="chart-dot" cx={x(i)} cy={yLine(p.value)} r="4" style={{ animationDelay: `${i * 100}ms` }} />
           <text className="chart-x" x={x(i)} y={H - 5}>{p.label}</text>
-          <text className="chart-v" x={x(i)} y={y(p.value) - 10}>{p.value}{unit ? '' : ''}</text>
+          <text className="chart-v" x={x(i)} y={yLine(p.value) - 10}>{p.value}{unit ? '' : ''}</text>
         </g>
       ))}
     </svg>
@@ -355,15 +434,14 @@ function Gauge({ percent, label, note }) {
   )
 }
 
-function Checklist({ items, gauge, meter }) {
+function Checklist({ items, meter }) {
   return (
-    <div className={gauge ? 'reclist reclist--split' : 'reclist'}>
+    <div className="reclist">
       <ul className="recs">
         {items.map((r, i) => (
           <li key={i} style={{ animationDelay: `${i * 80}ms` }}><span className="recs__dot" />{r}</li>
         ))}
       </ul>
-      {gauge && <Gauge {...gauge} />}
       {meter && (
         <div className="confidence">
           <div className="confidence__row"><small>{meter.label}</small><b>{meter.percent}%</b></div>
@@ -407,4 +485,92 @@ function Report({ sections }) {
   )
 }
 
-const BLOCKS = { table: Table, timeline: Timeline, stats: Stats, compare: Compare, chart: Chart, trends: Trends, keyvalue: KeyValue, checklist: Checklist, flow: Flow, report: Report, text: Text }
+function Heatmap({ title, subtitle, rows, cols, values }) {
+  return (
+    <div className="heatmap">
+      {title && <h4 className="sub">{title}</h4>}
+      {subtitle && <p className="heatmap__sub">{subtitle}</p>}
+      <div className="heatmap__grid" style={{ gridTemplateColumns: `80px repeat(${cols.length}, 1fr)` }}>
+        <div className="heatmap__corner" />
+        {cols.map((c, i) => <div key={i} className="heatmap__col-hdr">{c}</div>)}
+        {rows.map((row, ri) => (
+          <div key={ri} className="heatmap__row">
+            <div className="heatmap__row-hdr">{row}</div>
+            {values[ri].map((v, ci) => {
+              const hue = v < 0.7 ? 0 : v < 0.85 ? 30 : 120
+              const sat = v < 0.7 ? 70 : v < 0.85 ? 60 : 50
+              const light = 20 + v * 25
+              return (
+                <div key={ci} className="heatmap__cell"
+                  style={{ background: `hsl(${hue}, ${sat}%, ${light}%)` }}
+                  title={`${row} × ${cols[ci]}: ${(v * 100).toFixed(0)}%`}>
+                  {(v * 100).toFixed(0)}%
+                </div>
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Simulator({ sku, scenarios }) {
+  return (
+    <div className="sim">
+      {sku && <h4 className="sub">SKU: {sku}</h4>}
+      <div className="sim__cards">
+        {scenarios.map((s, i) => (
+          <div key={i} className={`sim__card ${s.recommended ? 'sim__card--rec' : ''}`}>
+            <div className="sim__change">{s.change}</div>
+            <div className="sim__margin">{s.projectedMargin}</div>
+            <div className="sim__impact">{s.sellThroughImpact}</div>
+            {s.recommended && <div className="sim__tag">Recommended</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GaugeCard({ percent, label, note, tasks }) {
+  return (
+    <div className="gauge-card">
+      {tasks && tasks.length > 0 && (
+        <ul className="gauge-card__tasks">
+          {tasks.map((t, i) => (
+            <li key={i} style={{ animationDelay: `${i * 60}ms` }}>
+              <span className="gauge-card__dot" />{t}
+            </li>
+          ))}
+        </ul>
+      )}
+      <Gauge percent={percent} label={label} note={note} />
+    </div>
+  )
+}
+
+function Countdown({ value, unit, label, note }) {
+  return (
+    <div className="countdown">
+      <div className="countdown__value">{value}</div>
+      <div className="countdown__unit">{unit}</div>
+      {label && <div className="countdown__label">{label}</div>}
+      {note && <div className="countdown__note">{note}</div>}
+    </div>
+  )
+}
+
+function Actions({ actions }) {
+  return (
+    <div className="btn-group">
+      {actions.map((a, i) => (
+        <button key={i} className={`btn-group__btn ${a.primary ? 'btn-group__btn--primary' : ''}`}>
+          {a.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+const BLOCKS = { table: Table, timeline: Timeline, stats: Stats, compare: Compare, chart: Chart, trends: Trends, keyvalue: KeyValue, checklist: Checklist, flow: Flow, report: Report, text: Text, heatmap: Heatmap, simulator: Simulator, 'gauge-card': GaugeCard, countdown: Countdown, actions: Actions }

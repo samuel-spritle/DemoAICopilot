@@ -1,13 +1,15 @@
 import { useRef, useReducer, useState, useEffect } from 'react'
-import { TopNav, LeftWelcome, WorkspaceEmpty, Dashboard, ThinkingLog } from './widgets.jsx'
+import { TopNav, LeftWelcome, WorkspaceEmpty, Dashboard, ThinkingLog, WelcomeScreen } from './widgets.jsx'
 import Blob from './Blob.jsx'
 import oncologyDemo from './demo.json'
 import radiologyDemo from './demo.radiology.json'
+import pricingDemo from './demo.pricing.json'
 import { createLiveSession } from './live.js'
 
-// Pick which standalone script drives the app: ?demo=radiology, default oncology.
-const DEMO_KEY = new URLSearchParams(location.search).get('demo') === 'radiology' ? 'radiology' : 'oncology'
-const demo = DEMO_KEY === 'radiology' ? radiologyDemo : oncologyDemo
+// Pick which standalone script drives the app: ?demo=radiology|pricing, default oncology.
+const DEMO_PARAM = new URLSearchParams(location.search).get('demo')
+const DEMO_KEY = DEMO_PARAM === 'radiology' ? 'radiology' : DEMO_PARAM === 'pricing' ? 'pricing' : 'oncology'
+const demo = DEMO_KEY === 'radiology' ? radiologyDemo : DEMO_KEY === 'pricing' ? pricingDemo : oncologyDemo
 
 // Dynamic panel matching — the vocabulary is DERIVED from each panel's own content
 // in demo.json (titles weigh most, body text least; rarer words score higher). Change
@@ -225,7 +227,9 @@ export default function App() {
               ? <Dashboard key={hot}
                   banner={hasRevealed ? demo.banner : null}
                   cards={demo.dashboard.filter((c) => c.section === hot)} />
-              : <WorkspaceEmpty workspace={demo.welcome.workspace} />}
+              : demo.welcomeScreen
+                ? <WelcomeScreen welcomeScreen={demo.welcomeScreen} />
+                : <WorkspaceEmpty workspace={demo.welcome.workspace} />}
         </main>
       </div>
     </div>
