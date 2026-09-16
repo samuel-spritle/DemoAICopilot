@@ -108,6 +108,7 @@
       "eyebrow": "Competitor Intelligence",
       "title": "Competitor Price Comparison",
       "badge": "Biba drop",
+      "match": ["kurta", "prices", "competitor", "drop"],
       "blocks": [{
         "type": "chart",
         "variant": "bar",
@@ -167,7 +168,7 @@
       "eyebrow": "Price Elasticity",
       "title": "Sell-Through Velocity",
       "badge": "3.2x avg",
-      "match": ["selling", "fast", "velocity", "units", "kurta", "floral"],
+      "match": ["selling", "fast", "velocity", "units", "floral"],
       "blocks": [{
         "type": "chart",
         "unit": "units/day",
@@ -185,7 +186,7 @@
       "id": "elasticity-simulator",
       "section": "elasticity",
       "title": "Price Elasticity Simulator",
-      "match": ["raise", "price", "increase", "margin", "kurta"],
+      "match": ["raise", "price", "increase", "elasticity", "simulator", "drop-off"],
       "blocks": [{
         "type": "simulator",
         "sku": "FK-2291",
@@ -211,22 +212,6 @@
       }]
     },
     {
-      "id": "actions-summary",
-      "section": "actions",
-      "eyebrow": "Daily Actions",
-      "title": "Priority Actions",
-      "badge": "3 pending",
-      "blocks": [{
-        "type": "checklist",
-        "items": [
-          "Match Biba on 5 kurta SKUs — ₹32K weekly impact",
-          "Raise FK-2291 by 8% — +₹42K over runway",
-          "Clear 2 slow-movers for markdown — recover ₹16K"
-        ],
-        "meter": { "label": "Combined Projected Impact", "percent": 82 }
-      }]
-    },
-    {
       "id": "actions-impact",
       "section": "actions",
       "eyebrow": "Projected Impact",
@@ -244,9 +229,26 @@
       }]
     },
     {
+      "id": "actions-summary",
+      "section": "actions",
+      "eyebrow": "Daily Actions",
+      "title": "Priority Actions",
+      "badge": "3 pending",
+      "blocks": [{
+        "type": "checklist",
+        "items": [
+          "Match Biba on 5 kurta SKUs — ₹32K weekly impact",
+          "Raise FK-2291 by 8% — +₹42K over runway",
+          "Clear 2 slow-movers for markdown — recover ₹16K"
+        ],
+        "meter": { "label": "Combined Projected Impact", "percent": 82 }
+      }]
+    },
+    {
       "id": "actions-buttons",
       "section": "actions",
       "title": "Approval",
+      "match": ["approve", "actions", "pricing", "today"],
       "blocks": [{
         "type": "actions",
         "actions": [
